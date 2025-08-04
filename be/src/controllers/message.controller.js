@@ -5,7 +5,7 @@ import cloudinary from "../lib/cloudinary.js";
 export const getUserForSidebar = async (req, res) => {
     try {
         const loggedInUserId = req.user._id;
-        const fillteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password -__v");
+        const fillteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password");
 
         res.status(200).json({
             users: fillteredUsers,
@@ -58,7 +58,7 @@ export const sendMessage = async (req, res) => {
         await newMessage.save();
 
         // realtime function 
-        res.status(200).json(newMessage);
+        res.status(201).json(newMessage);
     } catch (error) {
         console.error("Error sending message:", error);
         res.status(500).json({ message: "Internal server error" });

@@ -37,6 +37,8 @@ export const signup = async (req, res) => {
                 fullName: newUser.fullName,
                 email: newUser.email,
                 profilePicture: newUser.profilePicture,
+                createdAt: newUser.createdAt,
+                updatedAt: newUser.updatedAt,
             });
         } else {
             res.status(400).send("User creation failed");
@@ -65,11 +67,14 @@ export const login = async (req, res) => {
 
         generateToken(user._id, res);
         res.status(200).json({
-            _is: user._id,
-            fullName: user.fullName,
+            _id: user._id,
             email: user.email,
+            fullName: user.fullName,
             profilePicture: user.profilePicture,
-        });
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+        }
+    );
 
     } catch (error) {
         console.log(error.message);
