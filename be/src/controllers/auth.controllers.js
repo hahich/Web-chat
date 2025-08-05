@@ -119,7 +119,7 @@ export const checkAuth = (req, res) => {
     try {
         res.status(200).json(req.user);
     } catch (error) {
-        log(error.message);
+        console.log(error.message);
         res.status(500).send("Server error");
     }
 }
