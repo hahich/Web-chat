@@ -4,10 +4,10 @@ import MessageInput from './MessageInput';
 import ChatHeader from './ChatHeader';
 import MessageSkeleton from './skeletons/MessageSkeleton';
 import { useAuthStore } from '../store/useAuthStore';
-import { formatMessageTime } from '../lib/utils';
+import MessageItem from './MessageItem';
 
 const ChatContainer = () => {
-  const { messages, getMessages, isMessageLoading, selectedUser, subscribeToNewMessage, unsubscribeFromMessage } = useChatStore();
+  const { messages, getMessages, isMessageLoading, selectedUser, subscribeToNewMessage, unsubscribeFromMessage, typingUsers } = useChatStore();
   const { authUser } = useAuthStore();
 
   const messagesEndRef = useRef(null);
@@ -40,26 +40,32 @@ const ChatContainer = () => {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
-          <div key={message._id} className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`} ref={messagesEndRef}>
-            <div className="chat-image avatar">
-              <div className="size-10 rounded-full border">
-                <img src={message.senderId === authUser._id ? authUser.profilePicture || "avatar-default.svg" : selectedUser.profilePicture || "avatar-default.svg"} alt="ProfilePicture" />
-              </div>
-            </div>
-
-            <div className="chat-header mb-1">
-              <time className='text-sx opacity-50 ml-1'>
-                {formatMessageTime(message.createdAt)}
-              </time>
-            </div>
-            <div className="chat-buble">
-              {message.image && (
-                <img src={message.image} alt="Image" className='sm:max-w-[200px] rounded-md mb-2' />
-              )}
-              {message.text && <p>{message.text}</p>}
-            </div>
+          <div key={message._id} ref={messagesEndRef}>
+            <MessageItem 
+              message={message} 
+              selectedUser={selectedUser} 
+              authUser={authUser} 
+            />
           </div>
         ))}
+        
+        {/* Typing indicator */}
+        {typingUsers.has(selectedUser._id) && (
+          <div className="chat chat-start">
+            <div className="chat-image avatar">
+              <div className="size-10 rounded-full border">
+                <img src={selectedUser.profilePicture || "avatar-default.svg"} alt="ProfilePicture" />
+              </div>
+            </div>
+            <div className="chat-bubble">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <MessageInput />

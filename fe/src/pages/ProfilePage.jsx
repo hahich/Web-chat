@@ -1,10 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuthStore } from '../store/useAuthStore';
-import { Camera, Mail, User } from 'lucide-react';
+import { Camera, Mail, User, Edit, Save, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const ProfilePage = () => {
   const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
   const [selectedImage, setSelectedImage] = useState(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState(authUser?.fullName || '');
+  
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if(!file) return;
@@ -18,6 +22,31 @@ const ProfilePage = () => {
       await updateProfile({ profilePicture: base64Image });
     }
   }
+
+  const handleNameEdit = () => {
+    setIsEditingName(true);
+    setEditedName(authUser?.fullName || '');
+  }
+
+  const handleNameSave = async () => {
+    if (editedName.trim().length < 2) {
+      toast.error("Name must be at least 2 characters long");
+      return;
+    }
+    
+    await updateProfile({ fullName: editedName.trim() });
+    setIsEditingName(false);
+  }
+
+  const handleNameCancel = () => {
+    setIsEditingName(false);
+    setEditedName(authUser?.fullName || '');
+  }
+
+  // Update editedName when authUser changes
+  useEffect(() => {
+    setEditedName(authUser?.fullName || '');
+  }, [authUser?.fullName]);
   return (
     <div className='h-screen pt-20'>
       <div className="max-w-2xl mx-auto p-4 py-8">
@@ -47,7 +76,42 @@ const ProfilePage = () => {
                 <User className="size-4" />
                 Full Name
               </div>
-              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.fullName}</p>
+              {isEditingName ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    className="flex-1 px-4 py-2.5 bg-base-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary"
+                    disabled={isUpdatingProfile}
+                  />
+                  <button
+                    onClick={handleNameSave}
+                    disabled={isUpdatingProfile}
+                    className="p-2.5 bg-primary text-primary-content rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                  >
+                    <Save className="size-4" />
+                  </button>
+                  <button
+                    onClick={handleNameCancel}
+                    disabled={isUpdatingProfile}
+                    className="p-2.5 bg-base-300 text-base-content rounded-lg hover:bg-base-400 transition-colors disabled:opacity-50"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between px-4 py-2.5 bg-base-200 rounded-lg border">
+                  <span>{authUser?.fullName}</span>
+                  <button
+                    onClick={handleNameEdit}
+                    disabled={isUpdatingProfile}
+                    className="p-1 hover:bg-base-300 rounded transition-colors disabled:opacity-50"
+                  >
+                    <Edit className="size-4" />
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">

@@ -1,5 +1,5 @@
 import { Image, Send, X } from 'lucide-react';
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useChatStore } from '../store/useChatStore';
 import { toast } from 'react-hot-toast';
 
@@ -7,7 +7,8 @@ const MessageInput = () => {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
-  const { sendMessage } = useChatStore();
+  const { sendMessage, startTyping, stopTyping, selectedUser } = useChatStore();
+  const typingTimeoutRef = useRef(null);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -28,11 +29,41 @@ const MessageInput = () => {
       fileInputRef.current.value = "";
     }
   }
+  // Handle typing indicators
+  const handleTextChange = (e) => {
+    const newText = e.target.value;
+    setText(newText);
+    
+    if (selectedUser) {
+      // Clear existing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      
+      // Start typing indicator
+      startTyping(selectedUser._id);
+      
+      // Stop typing after 2 seconds of no input
+      typingTimeoutRef.current = setTimeout(() => {
+        stopTyping(selectedUser._id);
+      }, 2000);
+    }
+  };
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!text.trim() && !imagePreview) {
       return;
     }
+    
+    // Stop typing indicator
+    if (selectedUser) {
+      stopTyping(selectedUser._id);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    }
+    
     try {
       await sendMessage({
         text: text.trim(),
@@ -48,6 +79,15 @@ const MessageInput = () => {
       toast.error("Failed to send message");
     }
   }
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className='p-4 w-full'>
@@ -68,7 +108,7 @@ const MessageInput = () => {
             className='w-full input input-bordered rounded-lg input-sm sm:imput-md'
             placeholder='Type a message...'
             value={text}
-            onChange={(e) => setText(e.target.value)} />
+            onChange={handleTextChange} />
           <input type='file'
             accept='image/*'
             className="hidden"

@@ -1,10 +1,14 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
-import { LogOut, MessageSquare, Settings, User } from 'lucide-react';
+import { useThemeStore } from '../store/useThemeStore';
+import { LogOut, MessageSquare, Settings, User, Sun, Moon, Search } from 'lucide-react';
+import SearchModal from './SearchModal';
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
+  const [showSearch, setShowSearch] = useState(false);
   return (
     <header className='bg-base-100 border-b border-base-300 fixed w-full top-0 z-40 backdrop-blur-lg bg-base-100/80'>
       <div className="container mx-auto px-4 h-16">
@@ -19,6 +23,26 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Theme Toggle */}
+            <button 
+              onClick={toggleTheme} 
+              className="btn btn-sm btn-circle"
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            </button>
+
+            {/* Search Button */}
+            {authUser && (
+              <button 
+                onClick={() => setShowSearch(true)}
+                className="btn btn-sm btn-circle"
+                title="Search messages"
+              >
+                <Search className="size-4" />
+              </button>
+            )}
+
             <Link to="/settings" className={`btn btn-sm gap-2 transition-colors`}>
               <Settings className="size-4" />
               <span className="hidden md:inline">Settings</span>
@@ -40,6 +64,12 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      
+      {/* Search Modal */}
+      <SearchModal 
+        isOpen={showSearch} 
+        onClose={() => setShowSearch(false)} 
+      />
     </header>
   )
 }

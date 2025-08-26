@@ -13,11 +13,17 @@ import { useThemeStore } from './store/useThemeStore';
 
 function App() {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore()
-  const { theme } = useThemeStore()
+  const { theme, setTheme } = useThemeStore()
 
   useEffect(() => {
     checkAuth()
   }, [checkAuth])
+
+  useEffect(() => {
+    // Apply theme on app start
+    const savedTheme = localStorage.getItem("chat-theme") || "dark";
+    setTheme(savedTheme);
+  }, [setTheme])
 
   if (isCheckingAuth && !authUser) return (
     <div className="flex items-center justify-center h-screen">
