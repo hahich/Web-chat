@@ -6,7 +6,7 @@ import { LogOut, MessageSquare, Settings, User, Sun, Moon, Search } from 'lucide
 import SearchModal from './SearchModal';
 
 const Navbar = () => {
-  const { logout, authUser } = useAuthStore();
+  const { logout, authUser, notificationsEnabled, enableNotifications, disableNotifications, setNotificationsEnabled } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const [showSearch, setShowSearch] = useState(false);
   return (
@@ -31,6 +31,17 @@ const Navbar = () => {
             >
               {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </button>
+
+            {/* Notification Toggle */}
+            {authUser && (
+              <button
+                onClick={() => (notificationsEnabled ? disableNotifications() : enableNotifications())}
+                className={`btn btn-sm ${notificationsEnabled ? 'btn-success' : ''}`}
+                title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
+              >
+                {notificationsEnabled ? 'Notifications On' : 'Notifications Off'}
+              </button>
+            )}
 
             {/* Search Button */}
             {authUser && (

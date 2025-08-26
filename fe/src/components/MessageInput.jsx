@@ -3,11 +3,11 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useChatStore } from '../store/useChatStore';
 import { toast } from 'react-hot-toast';
 
-const MessageInput = () => {
+const MessageInput = ({ disabled = false, placeholder = 'Type a message...' }) => {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
-  const { sendMessage, startTyping, stopTyping, selectedUser } = useChatStore();
+  const { sendMessage, sendGroupMessage, startTyping, stopTyping, selectedUser, selectedGroup } = useChatStore();
   const typingTimeoutRef = useRef(null);
 
   const handleImageChange = (e) => {
@@ -52,6 +52,7 @@ const MessageInput = () => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
+    if (disabled) return;
     if (!text.trim() && !imagePreview) {
       return;
     }
@@ -65,10 +66,17 @@ const MessageInput = () => {
     }
     
     try {
-      await sendMessage({
-        text: text.trim(),
-        image: imagePreview,
-      });
+      if (selectedGroup) {
+        await sendGroupMessage({
+          text: text.trim(),
+          image: imagePreview,
+        });
+      } else {
+        await sendMessage({
+          text: text.trim(),
+          image: imagePreview,
+        });
+      }
 
       // Clear form
       setText("");
@@ -106,22 +114,27 @@ const MessageInput = () => {
         <div className="flex-1 flex gap-2">
           <input type="text"
             className='w-full input input-bordered rounded-lg input-sm sm:imput-md'
-            placeholder='Type a message...'
+            placeholder={placeholder}
             value={text}
-            onChange={handleTextChange} />
+            onChange={handleTextChange}
+            disabled={disabled}
+          />
           <input type='file'
             accept='image/*'
             className="hidden"
             ref={fileInputRef}
             onChange={handleImageChange}
+            disabled={disabled}
           />
           <button type='button' className={`hidden sm:flex btn btn-circle ${imagePreview ? "text-emerald-500" : "text-zinc-400"}`}
-            onClick={() => fileInputRef.current?.click()}>
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled}
+          >
             <Image size={20} />
           </button>
         </div>
         <button type='submit' className="btn btn-sm btn-circle"
-          disabled={!text.trim() && !imagePreview}
+          disabled={disabled || (!text.trim() && !imagePreview)}
         >
           <Send size={22} />
         </button>

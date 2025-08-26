@@ -1,11 +1,19 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useChatStore } from '../store/useChatStore'
 import Sidebar from '../components/Sidebar'
 import NoChatSelected from '../components/NoChatSelected'
 import ChatContainer from '../components/ChatContainer'
+import { useAuthStore } from '../store/useAuthStore'
 
 const HomePage = () => {
-  const { selectedUser, isUserLoading, isMessageLoading, users, messages, getUsers, getMessages } = useChatStore();
+  const { selectedUser, selectedGroup, subscribeToNewMessage, unsubscribeFromMessage } = useChatStore();
+  const { socket } = useAuthStore();
+  
+  useEffect(() => {
+    if (!socket) return;
+    subscribeToNewMessage();
+    return () => unsubscribeFromMessage();
+  }, [socket, subscribeToNewMessage, unsubscribeFromMessage])
   
   return (
     <div className='h-screen bg-base-200'>
@@ -14,7 +22,7 @@ const HomePage = () => {
           <div className="flex h-full rounded-lg overflow-hidden">
             <Sidebar />
 
-            {!selectedUser ? <NoChatSelected /> : <ChatContainer />}
+            {!(selectedUser || selectedGroup) ? <NoChatSelected /> : <ChatContainer />}
           </div>
         </div>
       </div>

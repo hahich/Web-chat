@@ -10,6 +10,7 @@ import { useAuthStore } from './store/useAuthStore';
 import { Loader } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { useThemeStore } from './store/useThemeStore';
+import { notificationService } from './lib/notificationService';
 
 function App() {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore()
@@ -24,6 +25,11 @@ function App() {
     const savedTheme = localStorage.getItem("chat-theme") || "dark";
     setTheme(savedTheme);
   }, [setTheme])
+
+  useEffect(() => {
+    // Ask for notification permission once app starts
+    notificationService.requestPermission();
+  }, [])
 
   if (isCheckingAuth && !authUser) return (
     <div className="flex items-center justify-center h-screen">

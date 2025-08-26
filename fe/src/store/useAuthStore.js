@@ -124,6 +124,7 @@ export const useAuthStore = create((set, get) => ({
     },
 
     // Notification functions
+    setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
     enableNotifications: async () => {
         const permission = await notificationService.requestPermission();
         if (permission) {

@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/useAuthStore'
 import { X } from 'lucide-react';
 
 const ChatHeader = () => {
-    const {selectedUser, setSelectedUser} = useChatStore();
+    const {selectedUser, selectedGroup, setSelectedUser, setSelectedGroup} = useChatStore();
     const {onlineUsers} = useAuthStore();
     
     return (
@@ -14,21 +14,27 @@ const ChatHeader = () => {
                     {/* Avatar */}
                     <div className="avatar">
                         <div className="size-10 rounded-full relative">
-                            <img src={selectedUser.profilePicture || "avatar-default.svg"} alt={selectedUser.fullName} />
+                            {selectedGroup ? (
+                                <img src={selectedGroup.avatar || "avatar-default.svg"} alt={selectedGroup.name} />
+                            ) : (
+                                <img src={selectedUser.profilePicture || "avatar-default.svg"} alt={selectedUser.fullName} />
+                            )}
                         </div>
                     </div>
 
                     {/* User info */}
                     <div className="">
-                        <h3 className="font-medium">{selectedUser.fullName}</h3>
-                        <p className="text-sm text-base-content/70">
-                            {onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
-                        </p>
+                        <h3 className="font-medium">{selectedGroup ? selectedGroup.name : selectedUser.fullName}</h3>
+                        {!selectedGroup && (
+                            <p className="text-sm text-base-content/70">
+                                {onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
+                            </p>
+                        )}
                     </div>
                 </div>
 
                 {/* Close chat */}
-                <button onClick={() => setSelectedUser(null)}>
+                <button onClick={() => { setSelectedUser(null); setSelectedGroup(null); }}>
                     <X />
                 </button>
             </div>

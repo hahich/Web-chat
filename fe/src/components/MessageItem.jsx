@@ -5,7 +5,7 @@ import { formatMessageTime } from '../lib/utils';
 import { MoreVertical, Edit, Trash2, Smile } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const MessageItem = ({ message, selectedUser, authUser }) => {
+const MessageItem = ({ message, selectedUser, selectedGroup, authUser }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(message.text || '');
@@ -15,6 +15,18 @@ const MessageItem = ({ message, selectedUser, authUser }) => {
   const { editMessage, deleteMessage, addReaction } = useChatStore();
 
   const isOwnMessage = message.senderId === authUser._id;
+
+  // Determine avatar in group chats: own -> authUser, others -> find in group members if available
+  const resolveAvatar = () => {
+    if (isOwnMessage) return authUser?.profilePicture || "avatar-default.svg";
+    if (selectedGroup && Array.isArray(selectedGroup.members)) {
+      const sender = selectedGroup.members.find((m) => (m._id || m) === message.senderId);
+      if (sender && typeof sender === 'object') {
+        return sender.profilePicture || "avatar-default.svg";
+      }
+    }
+    return selectedUser?.profilePicture || "avatar-default.svg";
+  }
 
   const handleEdit = async () => {
     if (editedText.trim().length === 0) {
@@ -59,7 +71,7 @@ const MessageItem = ({ message, selectedUser, authUser }) => {
       <div className="chat-image avatar">
         <div className="size-10 rounded-full border">
           <img
-            src={isOwnMessage ? authUser.profilePicture || "avatar-default.svg" : selectedUser.profilePicture || "avatar-default.svg"}
+            src={resolveAvatar()}
             alt="ProfilePicture"
           />
         </div>
@@ -149,7 +161,7 @@ const MessageItem = ({ message, selectedUser, authUser }) => {
 
         {/* Reactions popup */}
         {showReactions && (
-          <div ref={reactionsRef} className="absolute bottom-full left-0 mb-2 bg-base-200 border border-base-300 rounded-lg p-2 shadow-lg z-50 w-max max-w-[90vw] overflow-visible">
+          <div ref={reactionsRef} className={`${isOwnMessage ? "right-0" : "left-0"} absolute bottom-full mb-2 bg-base-200 border border-base-300 rounded-lg p-2 shadow-lg z-50 w-max max-w-[90vw] overflow-visible`}>
             <div className="flex gap-1 flex-wrap">
               {commonReactions.map((emoji) => (
                 <button

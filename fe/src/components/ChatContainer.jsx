@@ -7,16 +7,18 @@ import { useAuthStore } from '../store/useAuthStore';
 import MessageItem from './MessageItem';
 
 const ChatContainer = () => {
-  const { messages, getMessages, isMessageLoading, selectedUser, subscribeToNewMessage, unsubscribeFromMessage, typingUsers } = useChatStore();
+  const { messages, getMessages, getGroupMessages, isMessageLoading, selectedUser, selectedGroup, typingUsers } = useChatStore();
   const { authUser } = useAuthStore();
 
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    getMessages(selectedUser._id);
-    subscribeToNewMessage();
-    return () => unsubscribeFromMessage();
-  }, [getMessages, selectedUser._id, subscribeToNewMessage, unsubscribeFromMessage])
+    if (selectedUser) getMessages(selectedUser._id);
+  }, [getMessages, selectedUser?.id, selectedUser])
+
+  useEffect(() => {
+    if (selectedGroup) getGroupMessages(selectedGroup._id);
+  }, [getGroupMessages, selectedGroup?.id, selectedGroup])
 
   useEffect(() => {
     if (messagesEndRef.current && messages) {
@@ -39,7 +41,7 @@ const ChatContainer = () => {
       <ChatHeader />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => (
+        {!selectedGroup && messages.map((message) => (
           <div key={message._id} ref={messagesEndRef}>
             <MessageItem 
               message={message} 
@@ -48,9 +50,19 @@ const ChatContainer = () => {
             />
           </div>
         ))}
+        {selectedGroup && messages.map((message) => (
+          <div key={message._id} ref={messagesEndRef}>
+            <MessageItem 
+              message={message} 
+              selectedUser={selectedUser} 
+              selectedGroup={selectedGroup}
+              authUser={authUser} 
+            />
+          </div>
+        ))}
         
         {/* Typing indicator */}
-        {typingUsers.has(selectedUser._id) && (
+        {!selectedGroup && selectedUser && typingUsers.has(selectedUser._id) && (
           <div className="chat chat-start">
             <div className="chat-image avatar">
               <div className="size-10 rounded-full border">
@@ -68,7 +80,10 @@ const ChatContainer = () => {
         )}
       </div>
 
-      <MessageInput />
+      {!selectedGroup && <MessageInput />}
+      {selectedGroup && (
+        <MessageInput disabled={false} placeholder="Message the group" />
+      )}
     </div>
   )
 }
